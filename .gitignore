@@ -1,6 +1,366 @@
-*.class
+package me.wolfclash.mcpvp.kpvpbukkit;
 
-# Package Files #
-*.jar
-*.war
-*.ear
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.CreatureType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.java.JavaPlugin;
+
+@SuppressWarnings("deprecation")
+public class kPvPBukkit extends JavaPlugin implements Listener {
+
+  public void onEnable() {
+		Bukkit.getServer().getPluginManager().registerEvents(this, this);
+	}
+	
+	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
+		if (((cmd.getName().equalsIgnoreCase("clearinventory")) || cmd.getName().equalsIgnoreCase("cpinv") || cmd.getName().equalsIgnoreCase("ci"))) {
+			Player p = (Player)sender;
+			Player target = Bukkit.getServer().getPlayer(args[0]);
+			PlayerInventory pi = p.getInventory();
+			if (args.length == 0) {
+				p.getInventory().clear();
+				return true;
+			}
+			
+			if (args.length == 1) {
+				if (target == null) {
+					sender.sendMessage(ChatColor.RED + "That player is not on at this time.");
+					return true;
+				} else {
+					target.getInventory().clear();
+					return true;
+				}
+			}
+			
+			if (cmd.getName().equalsIgnoreCase("setspawn")) {
+	            getConfig().set("spawn.world", p.getLocation().getWorld().getName());
+	            getConfig().set("spawn.x", p.getLocation().getX());
+	            getConfig().set("spawn.y", p.getLocation().getY());
+	            getConfig().set("spawn.z", p.getLocation().getZ());
+	            saveConfig();
+	            p.sendMessage(ChatColor.GREEN + "Spawn set!");
+	            return true;
+	    }
+	   
+	    if (cmd.getName().equalsIgnoreCase("spawn")) {
+	            if (getConfig().getConfigurationSection("spawn") == null) {
+	                    p.sendMessage(ChatColor.RED + "The spawn has not yet been set!");
+	                    return true;
+	            }
+	            World w = Bukkit.getServer().getWorld(getConfig().getString("spawn.world"));
+	            double x = getConfig().getDouble("spawn.x");
+	            double y = getConfig().getDouble("spawn.y");
+	            double z = getConfig().getDouble("spawn.z");
+	            Location l = new Location(w, x, y, z);
+	            p.teleport(l);
+	            p.sendMessage(ChatColor.WHITE + "You cannot attack for 15 seconds.");
+	            return true;
+	    }
+	    
+	    if (cmd.getName().equalsIgnoreCase("sethome")) {
+            getConfig().set("home.world", p.getLocation().getWorld().getName());
+            getConfig().set("home.x", p.getLocation().getX());
+            getConfig().set("home.y", p.getLocation().getY());
+            getConfig().set("home.z", p.getLocation().getZ());
+            saveConfig();
+            p.sendMessage(ChatColor.GOLD + "Home set!");
+            return true;
+	    }
+	    
+	    if (cmd.getName().equalsIgnoreCase("warp")) {
+            if (args.length == 0) {
+                    p.sendMessage(ChatColor.RED + "Please specify a name!");
+                    return true;
+            }
+            
+            if (getConfig().getConfigurationSection("home" + args[0]) == null) {
+                    p.sendMessage(ChatColor.RED + "Warp " + args[0] + " does not exist!");
+                    return true;
+            }
+            World w = Bukkit.getServer().getWorld(getConfig().getString("warps." + args[0] + ".world"));
+            double x = getConfig().getDouble("home" + args[0] + ".x");
+            double y = getConfig().getDouble("home" + args[0] + ".y");
+            double z = getConfig().getDouble("home" + args[0] + ".z");
+            Location l = new Location(w, x, y, z);
+            p.teleport(l);
+            p.sendMessage(ChatColor.WHITE + "You cannot attack for 15 seconds.");
+            return true;
+	    }
+	    
+	    if (cmd.getName().equalsIgnoreCase("setjail")) {
+	    	getConfig().set("jail.world", p.getLocation().getWorld().getName());
+	    	getConfig().set("jail.x", p.getLocation().getX());
+	    	getConfig().set("jail.y", p.getLocation().getY());
+	    	getConfig().set("jail.z", p.getLocation().getZ());
+	    	saveConfig();
+	    	p.sendMessage(ChatColor.GOLD + "Jail set!");
+	    	return true;
+	    	}
+	    
+	    if (cmd.getName().equalsIgnoreCase("jail")) {
+	    	if (getConfig().getConfigurationSection("jail") == null) {
+	    		p.sendMessage(ChatColor.RED + "jail has not yet been set!");
+	    		return true;
+	    		}
+	    	if (args.length == 0) {
+	    		p.sendMessage(ChatColor.RED + "Usage: /jail [playerName]");
+	    		}
+	    	Player targetPlayer = p.getServer().getPlayer(args [0]);
+	    	World w = Bukkit.getServer().getWorld(getConfig().getString("jail.world"));
+	    	double x = getConfig().getDouble("jail.x");
+	    	double y = getConfig().getDouble("jail.y");
+	    	double z = getConfig().getDouble("jail.z");
+	    	Location f = new Location(w, x, y, z);
+	    	targetPlayer.teleport(f);
+	    	p.sendMessage(ChatColor.GOLD + "Player has been sent to jail.");
+	    	targetPlayer.sendMessage(ChatColor.RED + "You have been jailed by " + p.getName());
+	    	return true;
+	    }
+	    
+	    if (cmd.getName().equalsIgnoreCase("herpderp")) {
+	    	Bukkit.broadcastMessage(ChatColor.RED + "You have been trolled.");
+	    }
+	    
+	    if (cmd.getName().equalsIgnoreCase("help")) {
+	    	p.performCommand("help");
+	    }
+	    
+	    if (cmd.getName().equalsIgnoreCase("pos")) {
+	    	sender.sendMessage("currentWorld " + p.getWorld().getName());
+		     sender.sendMessage("posX " + p.getLocation().getBlockX());
+		     sender.sendMessage("posY " + p.getLocation().getBlockY());
+		     sender.sendMessage("posZ " + p.getLocation().getBlockZ());
+		     sender.sendMessage("posYaw " + p.getLocation().getYaw() + 180F + 360F % 360.0F);
+		     sender.sendMessage("posPitch " + Float.valueOf(p.getLocation().getPitch()));
+			return false;
+	    }
+	    
+	    if (cmd.getName().equalsIgnoreCase("setfight")) {
+	    	getConfig().set("fight.world", p.getLocation().getWorld().getName());
+	    	getConfig().set("fight.x", p.getLocation().getX());
+	    	getConfig().set("fight.y", p.getLocation().getY());
+	    	getConfig().set("fight.z", p.getLocation().getZ());
+	    	saveConfig();
+	    	p.sendMessage(ChatColor.GOLD + "Fight arena has been set!");
+	    	return true;
+	    	}
+	    
+	    if (cmd.getName().equalsIgnoreCase("fight")) {
+	    	if (getConfig().getConfigurationSection("fight") == null) {
+	    		p.sendMessage(ChatColor.RED + "Fight arena has not yet been set!");
+	    		return true;
+	    		}
+	    	if (args.length == 0) {
+	    		p.sendMessage(ChatColor.RED + "Usage: /fight [playerName]");
+	    		}
+	    	Player targetPlayer = p.getServer().getPlayer(args [0]);
+	    	World w = Bukkit.getServer().getWorld(getConfig().getString("fight.world"));
+	    	double x = getConfig().getDouble("fight.x");
+	    	double y = getConfig().getDouble("fight.y");
+	    	double z = getConfig().getDouble("fight.z");
+	    	Location f = new Location(w, x, y, z);
+	    	targetPlayer.teleport(f);
+	    	p.teleport(f);
+	    	p.sendMessage(ChatColor.GOLD + "Ready, set GO!");
+	    	targetPlayer.sendMessage(ChatColor.GOLD + "Ready, set GO!");
+	    	return true;
+	    }
+	    
+	    if (cmd.getName().equalsIgnoreCase("kit")) {
+            pi.addItem(new ItemStack(Material.DIAMOND_SWORD, 1));
+            pi.addItem(new ItemStack(Material.DIAMOND_PICKAXE, 1));
+            pi.addItem(new ItemStack(Material.DIAMOND_HELMET, 1));
+            pi.addItem(new ItemStack(Material.DIAMOND_CHESTPLATE, 1));
+            pi.addItem(new ItemStack(Material.DIAMOND_LEGGINGS, 1));
+            pi.addItem(new ItemStack(Material.DIAMOND_BOOTS, 1));
+            pi.addItem(new ItemStack(Material.GOLDEN_APPLE, 64));
+            p.sendMessage(ChatColor.GREEN + "You got your kit!");
+            return true;
+    }
+	    
+	    if (cmd.getName().equalsIgnoreCase("kitteam")) {
+	    	ItemStack sword = new ItemStack(Material.DIAMOND_SWORD, 1);
+            sword.addEnchantment(Enchantment.DAMAGE_ALL, 5);
+            sword.addEnchantment(Enchantment.FIRE_ASPECT, 2);
+            pi.addItem(sword);
+            ItemStack pickaxe = new ItemStack(Material.DIAMOND_PICKAXE, 1);
+            pickaxe.addEnchantment(Enchantment.LOOT_BONUS_BLOCKS, 3);
+            pickaxe.addEnchantment(Enchantment.DURABILITY, 3);
+            pickaxe.addEnchantment(Enchantment.DIG_SPEED, 5);
+            pi.addItem(pickaxe);
+            ItemStack helmet = new ItemStack(Material.DIAMOND_HELMET, 1);
+            helmet.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 4);
+            pi.addItem(helmet);
+            ItemStack chest = new ItemStack(Material.DIAMOND_CHESTPLATE, 1);
+            helmet.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 4);
+            pi.addItem(chest);
+            ItemStack leggings = new ItemStack(Material.DIAMOND_LEGGINGS, 1);
+            helmet.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 4);
+            pi.addItem(leggings);
+            ItemStack boots = new ItemStack(Material.DIAMOND_BOOTS, 1);
+            helmet.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 4);
+            pi.addItem(boots);
+            pi.addItem(new ItemStack(Material.GOLDEN_APPLE, 64));
+            p.sendMessage(ChatColor.GREEN + "You got your kitteam!");
+            return true;
+	    }
+	    
+	    if (cmd.getName().equalsIgnoreCase("mobspawn")) {
+	    	Location location = p.getLocation();
+	    	p.getWorld().spawnCreature(location, CreatureType.ZOMBIE);
+	    }
+	    
+	     if(cmd.getName().equalsIgnoreCase("lightning")) {
+	    	 Block block = p.getTargetBlock(null, 50);
+	    	 Location location = block.getLocation();
+	    	 World world = p.getWorld();
+	    	 world.createExplosion(location, 5);
+	    	 return true;
+	     }
+	     
+	     if (cmd.getName().equalsIgnoreCase("name")) {            
+             if (args.length == 0) {
+                     p.sendMessage(ChatColor.RED + "You did not specify a nickname!");
+                     return true;
+             }
+            
+             String nick = "";
+             for (String arg : args) {
+                     nick += arg + " ";
+             }
+            
+             nick = nick.substring(0, nick.length() - 1);
+            
+             nick = nick.replaceAll("&", "§");
+            
+             p.sendMessage(ChatColor.GREEN + "You have changed your nickname to " + nick);
+             this.getConfig().set(p.getName(), nick);
+             this.saveConfig();
+             return true;
+	     }
+	     
+	     if (cmd.getName().equalsIgnoreCase("sneak")) {
+	    	 if (p.isSneaking()) {
+	    		 return true;
+	    	 }
+	    	 
+	    	 if (!p.isSneaking()) {
+	    		 p.setSneaking(true);
+	    		 return true;
+	    	 }
+	     }
+	     
+	     if (cmd.getName().equalsIgnoreCase("storm")) {
+	    	 p.getLocation().getWorld().setStorm(true);
+	    	 return true;
+	     }
+	     
+	     if (cmd.getName().equalsIgnoreCase("enchant")) {
+	    	 p.performCommand("enchant");
+	     }
+	     
+	     if (cmd.getName().equalsIgnoreCase("tp")) {
+             if (args.length == 0) {
+                     p.sendMessage(ChatColor.RED + "Please specify a player.");
+                     return true;
+             }
+             if (target == null) {
+                     p.sendMessage(ChatColor.RED + "Could not find player " + args[0] + "!");
+                     return true;
+             }
+             p.teleport(target.getLocation());
+             return true;
+	     }
+	     
+	     if (cmd.getName().equalsIgnoreCase("ban")) {
+	        	if (args.length == 0) {
+	                sender.sendMessage(ChatColor.RED + "/warn <player>");
+	                return true;
+	        }
+	       	        
+	        if (args.length == 1) {
+	        	if (target == null) {
+	        		sender.sendMessage(ChatColor.RED + "Could not find player " + args[0]);
+	        		return true;
+	        		}
+	        
+	        {
+	        	target.setBanned(true);
+	        	target.sendMessage(ChatColor.RED + "God has banished you to hell.");
+	        	p.sendMessage(ChatColor.GOLD + "You have sent " + target.getName() + "to hell.");
+	        	return true;
+	        }
+	        }
+	     }
+	     
+	     if (cmd.getName().equalsIgnoreCase("kick")) {
+	    	 if(args.length == 0) {
+	    		 sender.sendMessage(ChatColor.RED + "Usage: /kick [playerName]");
+	    	 }
+	    	 
+	    	 if(args.length == 1) {
+	    		 if(p.isOp()) {
+	    			 sender.sendMessage(ChatColor.RED + "You cannot kick that player.");
+	    		 }
+	    		 
+	    		 if(!p.isOp()) {
+	    			 target.kickPlayer(ChatColor.RED + "You have been kicked by " + sender.getName());
+	    			 Bukkit.broadcastMessage(ChatColor.BLUE + " " + target.getName() + ChatColor.GRAY + " has been kicked by " + ChatColor.GREEN + " from the server.");
+	    			 return true;
+	    		 }
+	    	 }
+	     }
+	     
+	     if (cmd.getName().equalsIgnoreCase("kickall")) {
+	    	 if (args.length == 0) {
+	    		 p.sendMessage(ChatColor.RED + "Usage: /kickall [reason]");
+	             }
+	             else if(args.length == 1) {
+	                 String reason = "";
+	                 for (int i = 0; i < args.length; i++) {
+	                     reason += args[i] + " ";
+	                 }
+	                 for(Player onlineplayers : Bukkit.getOnlinePlayers()){
+	                     onlineplayers.kickPlayer(reason);
+	                 }
+	  
+	  
+	                 if(!(sender instanceof Player)){
+	                     sender.sendMessage(ChatColor.GOLD + "Kicked everyone off the server for: " + reason);
+	                 }
+	                 else {
+	                     Player player = (Player) sender;
+	                     player.sendMessage(ChatColor.RED + "Kicked everyone off the server for: " + reason);
+	                 }
+	             }
+	             else if(args.length == 1) {
+	                 String reason = args[0];
+	                 for(Player onlineplayers : Bukkit.getOnlinePlayers()){
+	                     onlineplayers.kickPlayer(reason);
+	                 }
+	  
+	  
+	                 if(!(sender instanceof Player)){
+	                     sender.sendMessage("Kicked everyone off the server for: " + reason);
+	                 }
+	                 else {
+	                     Player player = (Player) sender;
+	                     player.sendMessage(ChatColor.RED + "Kicked everyone off the server for: " + reason);  
+	                 }
+	             }
+	     }
+		}
+		return false;
+	}
+}
